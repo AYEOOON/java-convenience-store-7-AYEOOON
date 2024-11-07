@@ -10,8 +10,9 @@ public class OrderSystem {
     public void order(){
 
         OutputView.welcomeMessage();
-        String filePath = "src/main/resources/products.md";
-        List<Product> products = productService.loadProducts(filePath);
+        String productFilePath = "src/main/resources/products.md";
+        String promotionFilepath = "src/main/resources/promotions.md";
+        List<Product> products = productService.loadProducts(productFilePath,promotionFilepath);
 
         OutputView.showProducts(products);
     }

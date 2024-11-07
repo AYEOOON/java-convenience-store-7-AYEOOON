@@ -15,10 +15,8 @@ public class ProductLoader {
     public List<Product> parseProducts(List<String> lines){
         List<Product> products = new ArrayList<>();
 
-        for (int i = 0; i < lines.size(); i++){
+        for (int i = 1; i < lines.size(); i++){
             String line = lines.get(i);
-
-            if (i == 0 && line.toLowerCase().contains("name")) continue;
 
             String[] parts = line.split(",");
             String name = parts[0].trim();

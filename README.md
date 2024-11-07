@@ -5,7 +5,7 @@
 
 ## 1. 파일 입출력 기능
 - [x] **상품 데이터 로드**: `src/main/resources/products.md` 파일을 읽어 상품 목록을 초기화
-- [ ] **프로모션 데이터 로드**: `src/main/resources/promotions.md` 파일을 읽어 프로모션 정보 초기화
+- [x] **프로모션 데이터 로드**: `src/main/resources/promotions.md` 파일을 읽어 프로모션 정보 초기화
 
 ---
 
