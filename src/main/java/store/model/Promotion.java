@@ -29,14 +29,6 @@ public class Promotion {
         return get;
     }
 
-    public LocalDate getStart_date() {
-        return start_date;
-    }
-
-    public LocalDate getEnd_date() {
-        return end_date;
-    }
-
     public boolean isActive(LocalDate currentDate){
         return ((currentDate.isEqual(start_date) || currentDate.isAfter(start_date))
                 && (currentDate.isEqual(end_date) || currentDate.isBefore(end_date)));

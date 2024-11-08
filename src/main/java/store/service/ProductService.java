@@ -5,32 +5,24 @@ import java.util.List;
 import store.model.Product;
 import store.model.Promotion;
 import store.util.ProductLoader;
+import store.util.PromotionLoader;
 
 public class ProductService {
-    private final ProductLoader productLoader = new ProductLoader();
-    private final PromotionService promotionService = new PromotionService();
+    private final ProductLoader productLoader;
 
-    public List<Product> loadProducts(String productFilePath, String promotionFilePath){
-        try{
+    public ProductService() {
+        PromotionLoader promotionLoader = new PromotionLoader();
+        List<Promotion> allPromotions = promotionLoader.loadPromotions("src/main/resources/promotions.md");
+        this.productLoader = new ProductLoader(allPromotions);
+    }
+
+    public List<Product> loadProducts(String productFilePath) {
+        try {
             List<String> productLines = productLoader.loadProductData(productFilePath);
-            List<Product> products = productLoader.parseProducts(productLines);
-
-            List<Promotion> allPromotions = promotionService.loadPromotion(promotionFilePath);
-            List<Promotion> activePromotions = promotionService.getActivePromotions(allPromotions);
-
-            applyPromotionsToProducts(products,activePromotions);
-            return products;
-        }catch (IOException e){
+            return productLoader.parseProducts(productLines);
+        } catch (IOException e) {
             System.out.println("[ERROR] 파일을 불러오는 중 오류가 발생했습니다.");
             return null;
         }
-    }
-
-    private void applyPromotionsToProducts(List<Product> products, List<Promotion> activePromotions) {
-        products.forEach(product ->
-                activePromotions.stream()
-                        .filter(promotion -> product.getPromotion().equals(promotion.getName()))
-                        .findFirst()
-                        .ifPresent(product::setActivePromotion));
     }
 }

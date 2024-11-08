@@ -2,8 +2,6 @@ package store.model;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import store.model.Product;
-import store.model.Promotion;
 
 import java.time.LocalDate;
 
@@ -24,7 +22,7 @@ public class ProductTest {
         activePromotion = new Promotion("탄산2+1", 2, 1, startDate, endDate);
 
         // 프로모션이 있는 상품 생성
-        productWithPromotion = new Product("콜라", 1000, 10, "탄산2+1");
+        productWithPromotion = new Product("콜라", 1000, 10, activePromotion);
 
         // 프로모션이 없는 상품 생성
         productWithoutPromotion = new Product("물", 500, 10, null);
@@ -36,13 +34,13 @@ public class ProductTest {
         assertEquals("콜라", productWithPromotion.getName(), "상품 이름이 일치해야 합니다.");
         assertEquals(1000, productWithPromotion.getPrice(), "상품 가격이 일치해야 합니다.");
         assertEquals(10, productWithPromotion.getQuantity(), "상품 재고 수량이 일치해야 합니다.");
-        assertEquals("탄산2+1", productWithPromotion.getPromotion(), "상품의 프로모션 이름이 일치해야 합니다.");
+        assertEquals("탄산2+1", productWithPromotion.getActivePromotion().getName(), "상품의 프로모션 이름이 일치해야 합니다.");
 
         // 상품의 기본 정보 확인 (프로모션이 없는 경우)
         assertEquals("물", productWithoutPromotion.getName(), "상품 이름이 일치해야 합니다.");
         assertEquals(500, productWithoutPromotion.getPrice(), "상품 가격이 일치해야 합니다.");
         assertEquals(10, productWithoutPromotion.getQuantity(), "상품 재고 수량이 일치해야 합니다.");
-        assertNull(productWithoutPromotion.getPromotion(), "프로모션이 없는 상품의 프로모션 필드는 null이어야 합니다.");
+        assertNull(productWithoutPromotion.getActivePromotion(), "프로모션이 없는 상품의 프로모션 필드는 null이어야 합니다.");
     }
 
     @Test
