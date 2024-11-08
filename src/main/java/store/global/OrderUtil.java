@@ -2,6 +2,7 @@ package store.global;
 
 import store.model.Order;
 import store.model.Product;
+import store.model.Promotion;
 
 import java.util.HashMap;
 import java.util.List;
@@ -12,7 +13,7 @@ public class OrderUtil {
     private static final String HYPHEN = "-";
     private static final String INVALID_ORDER_FORMAT_ERROR = "[ERROR] 올바르지 않은 형식으로 입력했습니다. 다시 입력해 주세요.";
     private static final String PRODUCT_NAME_ERROR = "[ERROR] 존재하지 않는 상품입니다. 다시 입력해 주세요.";
-    private static final String INVALID_ECT_ERROR = "[ERROR] 잘못된 입력입니다. 다시 입력해 주세요.";
+    private static final String INVALID_INPUT_ERROR = "[ERROR] 잘못된 입력입니다. 다시 입력해 주세요.";
     private static final String OUT_OF_STOCK_ERROR = "[ERROR] 재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요.";
 
     public static Order convertInputToOrder(String userInput, List<Product> availableProducts) {
@@ -31,22 +32,27 @@ public class OrderUtil {
         int quantity = getQuantity(oneOrder[1]);
 
         Product product = findExistingProduct(productName, availableProducts);
-        checkStock(product,quantity);
+        checkStock(product, quantity);
 
         addToOrder(orderResult, product, quantity);
     }
 
     private static String[] parseUserInput(String userInput) {
         if (userInput.contains(" ")) {
-            throw new IllegalArgumentException(INVALID_ECT_ERROR);
+            throw new IllegalArgumentException(INVALID_INPUT_ERROR);
         }
         return userInput.replaceAll("\\[|\\]", "").split(COMMA_SEPARATOR);
     }
 
     private static void checkStock(Product product, int quantity) {
-        if (product.getQuantity() < quantity) {
-            throw new IllegalArgumentException(OUT_OF_STOCK_ERROR);
+        Promotion promotion = product.getActivePromotion();
+        if (promotion != null) {
+            if (product.getPromotionStock() >= quantity) return;
         }
+        if (product.getGeneralStock() >= quantity) {
+            return;
+        }
+        throw new IllegalArgumentException(OUT_OF_STOCK_ERROR);
     }
 
     private static void addToOrder(Map<Product, Integer> orderResult, Product product, int quantity) {
@@ -65,7 +71,7 @@ public class OrderUtil {
         try {
             return Integer.parseInt(quantityStr);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException(INVALID_ECT_ERROR);
+            throw new IllegalArgumentException(INVALID_INPUT_ERROR);
         }
     }
 

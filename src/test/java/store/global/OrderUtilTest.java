@@ -21,9 +21,9 @@ class OrderUtilTest {
         // 테스트용 상품 목록 생성
         Promotion promo1 = new Promotion("탄산2+1", 2, 1, LocalDate.of(2024, 1, 1), LocalDate.of(2024, 12, 31));
         products = Arrays.asList(
-                new Product("콜라", 1000, 10, promo1),
-                new Product("사이다", 1000, 8, null),
-                new Product("오렌지주스", 1800, 5, null)
+                new Product("콜라", 1000, 10, 10, promo1),
+                new Product("사이다", 1000, 8, 7,null),
+                new Product("오렌지주스", 1800, 5, 0,null)
         );
     }
 
