@@ -21,48 +21,63 @@ public class ProductUtil {
 
     public List<Product> parseProducts(List<String> lines) {
         List<Product> products = new ArrayList<>();
-
         for (int i = 1; i < lines.size(); i++) {
-            String line = lines.get(i);
-            String[] parts = line.split(",");
-            products.add(createProduct(parts));
+            processProductLine(products, lines.get(i));
         }
         return products;
     }
 
-    private Product createProduct(String[] parts) {
+    private void processProductLine(List<Product> products, String line) {
+        String[] parts = line.split(",");
         String name = parts[0].trim();
         int price = Integer.parseInt(parts[1].trim());
         int quantity = Integer.parseInt(parts[2].trim());
-        String promotionName = parts[3].trim();
+        Promotion promotion = findPromotionByName(parts[3].trim());
 
-        Promotion promotion = findPromotionByName(promotionName);
+        Product existingProduct = findProductByName(products, name);
+        if (existingProduct == null) {
+            addNewProduct(products, name, price, quantity, promotion);
+            return;
+        }
+        updateExistingProduct(existingProduct, quantity, promotion);
+    }
+
+    private void addNewProduct(List<Product> products, String name, int price, int quantity, Promotion promotion) {
         int generalStock = calculateGeneralStock(promotion, quantity);
         int promotionStock = calculatePromotionStock(promotion, quantity);
+        products.add(new Product(name, price, generalStock, promotionStock, promotion));
+    }
 
-        return new Product(name, price, generalStock, promotionStock, promotion);
+    private void updateExistingProduct(Product existingProduct, int quantity, Promotion promotion) {
+        if (promotion != null) {
+            existingProduct.setActivePromotion(promotion);
+            existingProduct.increasePromotionStock(quantity);
+            return;
+        }
+        existingProduct.increaseGeneralStock(quantity);
     }
 
     private int calculateGeneralStock(Promotion promotion, int quantity) {
-        if (promotion == null) {
-            return quantity;
-        }
+        if (promotion == null) return quantity;
         return 0;
     }
 
     private int calculatePromotionStock(Promotion promotion, int quantity) {
-        if (promotion != null) {
-            return quantity;
-        }
+        if (promotion != null) return quantity;
         return 0;
     }
 
     private Promotion findPromotionByName(String promotionName) {
-        if (promotionName.equals("null") || promotionName.isEmpty()) {
-            return null;
-        }
+        if (promotionName.equals("null") || promotionName.isEmpty()) return null;
         return promotions.stream()
                 .filter(p -> p.getName().equalsIgnoreCase(promotionName))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private Product findProductByName(List<Product> products, String name) {
+        return products.stream()
+                .filter(p -> p.getName().equalsIgnoreCase(name))
                 .findFirst()
                 .orElse(null);
     }

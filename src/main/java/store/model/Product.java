@@ -1,6 +1,6 @@
 package store.model;
 
-import java.util.Optional;
+import java.util.Objects;
 
 public class Product {
     private final String name;
@@ -53,5 +53,26 @@ public class Product {
             return true;
         }
         return false;
+    }
+
+    public void increasePromotionStock(int quantity) {
+        promotionStock += quantity;
+    }
+
+    public void increaseGeneralStock(int quantity) {
+        generalStock += quantity;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Product product = (Product) o;
+        return Objects.equals(name, product.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
     }
 }

@@ -7,6 +7,7 @@ import store.model.Promotion;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import store.ui.InputView;
 
 public class OrderUtil {
     private static final String COMMA_SEPARATOR = ",";
@@ -32,9 +33,37 @@ public class OrderUtil {
         int quantity = getQuantity(oneOrder[1]);
 
         Product product = findExistingProduct(productName, availableProducts);
-        checkStock(product, quantity);
+        checkStock(product,quantity);
+        handlePromotionOrder(product, quantity, orderResult);
+    }
 
+    private static void handlePromotionOrder(Product product, int quantity, Map<Product, Integer> orderResult) {
+        if (product.getActivePromotion() == null || product.getPromotionStock() >= quantity) {
+            addPromotionStock(product, quantity, orderResult);
+            return;
+        }
+        handleFullPricePurchase(product, quantity, orderResult);
+    }
+
+    private static void handleFullPricePurchase(Product product, int quantity, Map<Product, Integer> orderResult) {
+        int promotionStock = product.getPromotionStock();
+        int remainingQuantity = quantity - promotionStock;
+
+        boolean confirmFullPrice = InputView.getPromotionConfirmation(product.getName(), remainingQuantity);
+        if (confirmFullPrice) {
+            reducePromotionAndGeneralStock(product, promotionStock, remainingQuantity);
+            addToOrder(orderResult, product, quantity);
+        }
+    }
+
+    private static void addPromotionStock(Product product, int quantity, Map<Product, Integer> orderResult) {
+        product.reduceStock(quantity, true);
         addToOrder(orderResult, product, quantity);
+    }
+
+    private static void reducePromotionAndGeneralStock(Product product, int promotionStock, int generalStock) {
+        product.reduceStock(promotionStock, true);
+        product.reduceStock(generalStock, false);
     }
 
     private static String[] parseUserInput(String userInput) {
@@ -45,14 +74,9 @@ public class OrderUtil {
     }
 
     private static void checkStock(Product product, int quantity) {
-        Promotion promotion = product.getActivePromotion();
-        if (promotion != null) {
-            if (product.getPromotionStock() >= quantity) return;
+        if ((product.getGeneralStock() + product.getPromotionStock()) < quantity) {
+            throw new IllegalArgumentException(OUT_OF_STOCK_ERROR);
         }
-        if (product.getGeneralStock() >= quantity) {
-            return;
-        }
-        throw new IllegalArgumentException(OUT_OF_STOCK_ERROR);
     }
 
     private static void addToOrder(Map<Product, Integer> orderResult, Product product, int quantity) {
