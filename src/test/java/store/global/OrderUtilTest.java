@@ -1,4 +1,4 @@
-package store.util;
+package store.global;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

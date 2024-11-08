@@ -3,7 +3,7 @@ package store.order;
 import java.util.List;
 import store.model.Order;
 import store.model.Product;
-import store.util.OrderUtil;
+import store.global.OrderUtil;
 import store.service.ProductService;
 import store.ui.InputView;
 import store.ui.OutputView;

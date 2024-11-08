@@ -1,4 +1,4 @@
-package store.util;
+package store.global;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -8,10 +8,10 @@ import java.util.List;
 import store.model.Product;
 import store.model.Promotion;
 
-public class ProductLoader {
+public class ProductUtil {
     private final List<Promotion> promotions;
 
-    public ProductLoader(List<Promotion> promotions) {
+    public ProductUtil(List<Promotion> promotions) {
         this.promotions = promotions;
     }
 

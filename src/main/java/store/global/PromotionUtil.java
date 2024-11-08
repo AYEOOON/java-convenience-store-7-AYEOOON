@@ -1,4 +1,4 @@
-package store.util;
+package store.global;
 
 import store.model.Promotion;
 
@@ -9,7 +9,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PromotionLoader {
+public class PromotionUtil {
     public List<Promotion> loadPromotions(String filePath) {
         try {
             List<String> lines = Files.readAllLines(Paths.get(filePath));

@@ -4,16 +4,16 @@ import java.io.IOException;
 import java.util.List;
 import store.model.Product;
 import store.model.Promotion;
-import store.util.ProductLoader;
-import store.util.PromotionLoader;
+import store.global.ProductUtil;
+import store.global.PromotionUtil;
 
 public class ProductService {
-    private final ProductLoader productLoader;
+    private final ProductUtil productLoader;
 
     public ProductService() {
-        PromotionLoader promotionLoader = new PromotionLoader();
+        PromotionUtil promotionLoader = new PromotionUtil();
         List<Promotion> allPromotions = promotionLoader.loadPromotions("src/main/resources/promotions.md");
-        this.productLoader = new ProductLoader(allPromotions);
+        this.productLoader = new ProductUtil(allPromotions);
     }
 
     public List<Product> loadProducts(String productFilePath) {

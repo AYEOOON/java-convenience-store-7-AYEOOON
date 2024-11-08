@@ -1,4 +1,4 @@
-package store.util;
+package store.global;
 
 import store.model.Order;
 import store.model.Product;
