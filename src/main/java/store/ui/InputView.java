@@ -11,8 +11,13 @@ public class InputView {
         return Console.readLine();
     }
 
-    public static boolean getPromotionConfirmation(String productName, int quantity) {
+    public static boolean getNoPromotionConfirmation(String productName, int quantity) {
         System.out.printf("\n현재 %s %d개는 프로모션 할인이 적용되지 않습니다. 그래도 구매하시겠습니까? (Y/N)\n", productName, quantity);
+        return getYesOrNoInput();
+    }
+
+    public static boolean getAdditionalPromotionConfirmation(String productName, int quantity) {
+        System.out.printf("\n현재 %s은(는) %d개를 무료로 더 받을 수 있습니다. 추가하시겠습니까? (Y/N)\n", productName, quantity);
         return getYesOrNoInput();
     }
 
@@ -29,7 +34,7 @@ public class InputView {
     private static boolean getYesOrNoInput() {
         String input = Console.readLine();
         if (!input.equals("Y") && !input.equals("N") && input.contains(" ")) {
-            System.out.println("[ERROR] 올바르지 않은 입력입니다. 다시 입력해 주세요.");
+            System.out.println(INVALID_INPUT_ERROR);
             return getYesOrNoInput();
         }
         return input.equals("Y");

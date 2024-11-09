@@ -9,7 +9,6 @@ public class Order {
     private int totalAmount;
     private int originalTotalAmount;
     private int membershipDiscount;
-    private int promotionDiscount;
 
     private static final double MEMBERSHIP_DISCOUNT_RATE = 0.3;
     private static final int MAX_MEMBERSHIP_DISCOUNT = 8000;
@@ -28,7 +27,7 @@ public class Order {
     }
 
     public void applyPromotionDiscount() {
-        promotionDiscount = calculatePromotionDiscount();
+        int promotionDiscount = calculatePromotionDiscount();
         totalAmount -= promotionDiscount;
     }
 
