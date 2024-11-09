@@ -5,15 +5,18 @@ import java.util.Map;
 
 public class Order {
     private final Map<Product, Integer> orderItems;
+    private final Map<Product, Integer> freeItems;
     private int totalAmount;
     private int originalTotalAmount;
     private int membershipDiscount;
+    private int promotionDiscount;
 
     private static final double MEMBERSHIP_DISCOUNT_RATE = 0.3;
     private static final int MAX_MEMBERSHIP_DISCOUNT = 8000;
 
-    public Order(Map<Product, Integer> orderResult) {
+    public Order(Map<Product, Integer> orderResult, Map<Product, Integer> freeItems) {
         this.orderItems = new HashMap<>(orderResult);
+        this.freeItems = new HashMap<>(freeItems);
         calculateOriginalTotalAmount();
         this.totalAmount = originalTotalAmount;
     }
@@ -24,8 +27,9 @@ public class Order {
                 .sum();
     }
 
-    public void applyDiscount(int discount) {
-        totalAmount = originalTotalAmount - discount;
+    public void applyPromotionDiscount() {
+        promotionDiscount = calculatePromotionDiscount();
+        totalAmount -= promotionDiscount;
     }
 
     public void applyMembershipDiscount() {
@@ -53,18 +57,13 @@ public class Order {
     }
 
     public int calculatePromotionDiscount() {
-        return orderItems.entrySet().stream()
-                .mapToInt(entry -> {
-                    Product product = entry.getKey();
-                    int quantity = entry.getValue();
-                    Promotion promotion = product.getActivePromotion();
-
-                    if (promotion != null) {
-                        return promotion.calculateDiscount(product, quantity);
-                    }
-                    return 0;
-                })
-                .sum();
+        int totalDiscount = 0;
+        for (Map.Entry<Product, Integer> entry : freeItems.entrySet()) {
+            Product product = entry.getKey();
+            int freeQuantity = entry.getValue();
+            totalDiscount += freeQuantity * product.getPrice();
+        }
+        return totalDiscount;
     }
 
     public int getMembershipDiscount() {
@@ -77,6 +76,10 @@ public class Order {
 
     public Map<Product, Integer> getOrderItems() {
         return orderItems;
+    }
+
+    public Map<Product, Integer> getFreeItems() {
+        return freeItems;
     }
 
     public int getTotalAmount() {

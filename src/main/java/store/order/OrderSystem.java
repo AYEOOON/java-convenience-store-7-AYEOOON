@@ -13,10 +13,15 @@ public class OrderSystem {
 
     public void order() {
         List<Product> products = displayProducts();
-        Order order = getUserOrder(products);
-        int eventDiscount = applyEventDiscount(order);
-        int membershipDiscount = handleMembershipDiscount(order);
-        OutputView.displayReceipt(order, eventDiscount, membershipDiscount);
+        while(true) {
+            Order order = getUserOrder(products);
+            int eventDiscount = applyEventDiscount(order);
+            int membershipDiscount = handleMembershipDiscount(order);
+            OutputView.displayReceipt(order, eventDiscount, membershipDiscount);
+            if(!InputView.getAdditionalPurchaseConfirmation()) break;
+            OutputView.welcomeMessage();
+            OutputView.displayProducts(products);
+        }
     }
 
     private List<Product> displayProducts() {
@@ -37,7 +42,7 @@ public class OrderSystem {
 
     private int applyEventDiscount(Order order) {
         int eventDiscount = order.calculatePromotionDiscount();
-        order.applyDiscount(eventDiscount);
+        order.applyPromotionDiscount();
         return eventDiscount;
     }
 

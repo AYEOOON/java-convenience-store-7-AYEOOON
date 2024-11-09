@@ -3,11 +3,11 @@ package store.global;
 import store.model.Order;
 import store.model.Product;
 import store.model.Promotion;
+import store.ui.InputView;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import store.ui.InputView;
 
 public class OrderUtil {
     private static final String COMMA_SEPARATOR = ",";
@@ -19,51 +19,103 @@ public class OrderUtil {
 
     public static Order convertInputToOrder(String userInput, List<Product> availableProducts) {
         Map<Product, Integer> orderResult = new HashMap<>();
+        Map<Product, Integer> freeItems = new HashMap<>();
         String[] orders = parseUserInput(userInput);
 
         for (String order : orders) {
-            processOrderItem(order, availableProducts, orderResult);
+            processOrderItem(order, availableProducts, orderResult, freeItems);
         }
-        return new Order(orderResult);
+        return new Order(orderResult, freeItems);
     }
 
-    private static void processOrderItem(String order, List<Product> availableProducts, Map<Product, Integer> orderResult) {
+    private static void processOrderItem(String order, List<Product> availableProducts, Map<Product, Integer> orderResult, Map<Product, Integer> freeItems) {
         String[] oneOrder = getOneOrder(order);
         String productName = oneOrder[0];
         int quantity = getQuantity(oneOrder[1]);
 
         Product product = findExistingProduct(productName, availableProducts);
-        checkStock(product,quantity);
-        handlePromotionOrder(product, quantity, orderResult);
+        checkStock(product, quantity);
+        handlePromotionOrder(product, quantity, orderResult, freeItems);
     }
 
-    private static void handlePromotionOrder(Product product, int quantity, Map<Product, Integer> orderResult) {
-        if (product.getActivePromotion() == null || product.getPromotionStock() >= quantity) {
-            addPromotionStock(product, quantity, orderResult);
-            return;
+    private static void handlePromotionOrder(Product product, int quantity, Map<Product, Integer> orderResult, Map<Product, Integer> freeItems) {
+        Promotion promotion = product.getActivePromotion();
+        if (promotion == null || product.getPromotionStock() >= quantity) {
+            processFullPromotionOrder(product, quantity, orderResult, freeItems);
+        } else {
+            handlePartialPromotionOrder(product, quantity, orderResult, freeItems);
         }
-        handleFullPricePurchase(product, quantity, orderResult);
     }
 
-    private static void handleFullPricePurchase(Product product, int quantity, Map<Product, Integer> orderResult) {
+    private static void processFullPromotionOrder(Product product, int quantity, Map<Product, Integer> orderResult, Map<Product, Integer> freeItems) {
+        Promotion promotion = product.getActivePromotion();
+        if (promotion != null) {
+            int sets = quantity / (promotion.getBuy() + promotion.getGet());
+            int freeItemsCount = sets * promotion.getGet();
+            addToFreeItems(freeItems, product, freeItemsCount);
+        }
+        reducePromotionStock(product, quantity);
+        addToPurchasedItems(orderResult, product, quantity);
+    }
+
+    private static void handlePartialPromotionOrder(Product product, int quantity, Map<Product, Integer> orderResult, Map<Product, Integer> freeItems) {
+        Promotion promotion = product.getActivePromotion();
         int promotionStock = product.getPromotionStock();
-        int remainingQuantity = quantity - promotionStock;
+        int promotionSetSize = promotion.getBuy() + promotion.getGet();
 
-        boolean confirmFullPrice = InputView.getPromotionConfirmation(product.getName(), remainingQuantity);
-        if (confirmFullPrice) {
-            reducePromotionAndGeneralStock(product, promotionStock, remainingQuantity);
-            addToOrder(orderResult, product, quantity);
+        int maxFullPromotionSets = promotionStock / promotionSetSize;
+        int maxPromotionQuantity = maxFullPromotionSets * promotionSetSize;
+        int applicablePromotionQuantity = Math.min(quantity, maxPromotionQuantity);
+
+        if (applicablePromotionQuantity > 0) {
+            reducePromotionStock(product, applicablePromotionQuantity);
+            addToPurchasedItems(orderResult, product, applicablePromotionQuantity);
+
+            int completePromotionSets = applicablePromotionQuantity / promotionSetSize;
+            int freeItemsCount = completePromotionSets * promotion.getGet();
+            addToFreeItems(freeItems, product, freeItemsCount);
+        }
+
+        int remainingQuantity = quantity - applicablePromotionQuantity;
+        int remainingPromotionStock = promotionStock - applicablePromotionQuantity;
+
+        if (remainingPromotionStock > 0 && remainingPromotionStock < promotionSetSize) {
+            boolean confirmFullPrice = InputView.getNoPromotionConfirmation(product.getName(), remainingQuantity);
+            if (confirmFullPrice) {
+                reducePromotionStock(product, remainingPromotionStock);
+                remainingQuantity -= remainingPromotionStock;
+                handleNonPromotionalPurchase(product, remainingQuantity,remainingPromotionStock, orderResult);
+            }
+        } else if (remainingQuantity > 0) {
+            handleNonPromotionalPurchase(product, remainingQuantity, remainingPromotionStock,orderResult);
         }
     }
 
-    private static void addPromotionStock(Product product, int quantity, Map<Product, Integer> orderResult) {
-        product.reduceStock(quantity, true);
-        addToOrder(orderResult, product, quantity);
+    private static void handleNonPromotionalPurchase(Product product, int remainingQuantity, int remainingPromotionStock, Map<Product, Integer> orderResult) {
+        if (remainingQuantity > 0) {
+            int generalStock = product.getGeneralStock();
+            int quantityToUse = Math.min(remainingQuantity, generalStock);
+            reduceGeneralStock(product, remainingQuantity);
+            addToPurchasedItems(orderResult, product, quantityToUse+remainingPromotionStock);
+        }
     }
 
-    private static void reducePromotionAndGeneralStock(Product product, int promotionStock, int generalStock) {
-        product.reduceStock(promotionStock, true);
-        product.reduceStock(generalStock, false);
+    private static void reducePromotionStock(Product product, int quantity) {
+        product.reduceStock(quantity, true);
+    }
+
+    private static void reduceGeneralStock(Product product, int quantity) {
+        product.reduceStock(quantity, false);
+    }
+
+    private static void addToPurchasedItems(Map<Product, Integer> purchasedItems, Product product, int quantity) {
+        purchasedItems.put(product, purchasedItems.getOrDefault(product, 0) + quantity);
+    }
+
+    private static void addToFreeItems(Map<Product, Integer> freeItems, Product product, int quantity) {
+        if (quantity > 0) {
+            freeItems.put(product, freeItems.getOrDefault(product, 0) + quantity);
+        }
     }
 
     private static String[] parseUserInput(String userInput) {
@@ -77,10 +129,6 @@ public class OrderUtil {
         if ((product.getGeneralStock() + product.getPromotionStock()) < quantity) {
             throw new IllegalArgumentException(OUT_OF_STOCK_ERROR);
         }
-    }
-
-    private static void addToOrder(Map<Product, Integer> orderResult, Product product, int quantity) {
-        orderResult.put(product, orderResult.getOrDefault(product, 0) + quantity);
     }
 
     private static String[] getOneOrder(String order) {

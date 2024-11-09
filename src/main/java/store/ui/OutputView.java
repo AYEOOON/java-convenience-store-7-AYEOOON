@@ -2,6 +2,7 @@ package store.ui;
 
 import java.text.DecimalFormat;
 import java.util.List;
+import java.util.Map;
 import store.model.Order;
 import store.model.Product;
 import store.model.Promotion;
@@ -11,8 +12,7 @@ public class OutputView {
     private static final DecimalFormat formatter = new DecimalFormat("#,###");
 
     public static void welcomeMessage() {
-        System.out.println("안녕하세요. W편의점입니다.\n"
-                + "현재 보유하고 있는 상품입니다.\n");
+        System.out.println("안녕하세요. W편의점입니다.\n현재 보유하고 있는 상품입니다.\n");
     }
 
     public static void displayProducts(List<Product> products) {
@@ -20,31 +20,30 @@ public class OutputView {
     }
 
     private static void displayProductStock(Product product) {
-        if (hasPromotionStock(product)) {
+        if (product.getPromotionStock() == 0 && product.getGeneralStock() == 0) {
+            printOutOfStock(product);
+        } else {
             displayPromotionStock(product);
+            displayGeneralStock(product);
         }
-        displayGeneralStock(product);
     }
 
     private static void displayGeneralStock(Product product) {
-        if (hasGeneralStock(product)) {
+        if (product.getGeneralStock() > 0) {
             printProductWithStock(product, product.getGeneralStock(), "");
-            return;
+        } else {
+            printOutOfStock(product);
         }
-        printOutOfStock(product);
     }
 
     private static void displayPromotionStock(Product product) {
-        if (!hasPromotionStock(product)) return;
-        printProductWithStock(product, product.getPromotionStock(), getPromotionName(product));
-    }
-
-    private static boolean hasPromotionStock(Product product) {
-        return product.getPromotionStock() > 0;
-    }
-
-    private static boolean hasGeneralStock(Product product) {
-        return product.getGeneralStock() > 0;
+        if (product.getPromotionStock() > 0) {
+            printProductWithStock(product, product.getPromotionStock(), getPromotionName(product));
+        } else if (product.getActivePromotion() != null) {
+            String promotionInfo = getPromotionName(product);
+            String formattedPrice = formatter.format(product.getPrice()) + "원";
+            System.out.println("- " + product.getName() + " " + formattedPrice + " 재고 없음" + promotionInfo);
+        }
     }
 
     private static void printProductWithStock(Product product, int stock, String promotionInfo) {
@@ -58,10 +57,10 @@ public class OutputView {
     }
 
     private static String getPromotionName(Product product) {
-        if (product.getActivePromotion() == null) return "";
-        String promotionName = product.getActivePromotion().getName();
-        if (promotionName.isEmpty()) return "";
-        return " " + promotionName;
+        Promotion promotion = product.getActivePromotion();
+        if (promotion == null) return "";
+        String promotionName = promotion.getName();
+        return promotionName.isEmpty() ? "" : " " + promotionName;
     }
 
     public static void displayReceipt(Order order, int eventDiscount, int membershipDiscount) {
@@ -85,18 +84,12 @@ public class OutputView {
 
     private static void printFreeItems(Order order) {
         System.out.println("=============증\t정===============");
-        order.getOrderItems().forEach((product, quantity) -> {
-            int freeItems = calculateFreeItems(product, quantity);
-            if (freeItems > 0) {
-                System.out.printf("%s\t\t%d\n", product.getName(), freeItems);
+        Map<Product, Integer> freeItems = order.getFreeItems();
+        freeItems.forEach((product, quantity) -> {
+            if (quantity > 0) {
+                System.out.printf("%s\t\t%d\n", product.getName(), quantity);
             }
         });
-    }
-
-    private static int calculateFreeItems(Product product, int quantity) {
-        Promotion promotion = product.getActivePromotion();
-        if (promotion == null) return 0;
-        return (quantity / promotion.getBuy()) * promotion.getGet();
     }
 
     private static void printTotalSummary(Order order, int eventDiscount, int membershipDiscount) {
