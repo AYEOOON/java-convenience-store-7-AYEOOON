@@ -31,16 +31,14 @@ public class PromotionTest {
 
     @Test
     public void 프로모션_활성화_상태_테스트() {
-        LocalDate today = LocalDate.now();
-
         // 활성화된 프로모션 확인
-        assertTrue(activePromotion.isActive(today), "프로모션이 현재 활성화 상태여야 합니다.");
+        assertTrue(activePromotion.isActive(), "프로모션이 현재 활성화 상태여야 합니다.");
 
         // 만료된 프로모션 확인
-        assertFalse(expiredPromotion.isActive(today), "만료된 프로모션은 비활성화 상태여야 합니다.");
+        assertFalse(expiredPromotion.isActive(), "만료된 프로모션은 비활성화 상태여야 합니다.");
 
         // 미래에 시작되는 프로모션 확인
-        assertFalse(futurePromotion.isActive(today), "미래의 프로모션은 비활성화 상태여야 합니다.");
+        assertFalse(futurePromotion.isActive(), "미래의 프로모션은 비활성화 상태여야 합니다.");
     }
 
     @Test

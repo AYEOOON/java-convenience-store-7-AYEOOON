@@ -1,6 +1,5 @@
 package store.service;
 
-import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.util.List;
@@ -28,13 +27,11 @@ public class ProductServiceTest {
     @Test
     public void 활성_프로모션이_정확히_적용되는지_테스트() {
         List<Product> products = productService.loadProducts(productFilePath);
-        LocalDate today = LocalDate.now();
-
         products.forEach(product -> {
             Promotion promotion = product.getActivePromotion();
             if (promotion != null) {
-                boolean isActive = promotion.isActive(today);
-                assertEquals(isActive, promotion.isActive(today), "프로모션의 활성 상태가 일치해야 합니다.");
+                boolean isActive = promotion.isActive();
+                assertEquals(isActive, promotion.isActive(), "프로모션의 활성 상태가 일치해야 합니다.");
             }
         });
     }

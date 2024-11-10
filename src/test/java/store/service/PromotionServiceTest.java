@@ -3,7 +3,6 @@ package store.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import store.model.Promotion;
-import store.service.PromotionService;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -33,11 +32,9 @@ public class PromotionServiceTest {
         List<Promotion> promotions = promotionService.loadPromotion(promotionFilePath);
         List<Promotion> activePromotions = promotionService.getActivePromotions(promotions);
 
-        LocalDate today = LocalDate.now();
-
         // 현재 활성화된 프로모션만 필터링된 것을 확인
         activePromotions.forEach(promotion ->
-                assertTrue(promotion.isActive(today), promotion.getName() + " 프로모션이 활성화 상태여야 합니다.")
+                assertTrue(promotion.isActive(), promotion.getName() + " 프로모션이 활성화 상태여야 합니다.")
         );
     }
 
@@ -49,7 +46,7 @@ public class PromotionServiceTest {
 
         // 전체 프로모션에서 활성화되지 않은 프로모션이 activePromotions에 포함되지 않는지 확인
         promotions.stream()
-                .filter(promotion -> !promotion.isActive(today))
+                .filter(promotion -> !promotion.isActive())
                 .forEach(promotion -> assertFalse(activePromotions.contains(promotion),
                         promotion.getName() + " 프로모션은 비활성화 상태로 activePromotions에 포함되지 않아야 합니다."));
     }

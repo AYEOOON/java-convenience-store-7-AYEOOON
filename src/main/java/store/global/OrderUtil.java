@@ -40,16 +40,18 @@ public class OrderUtil {
 
     private static void handlePromotionOrder(Product product, int quantity, Map<Product, Integer> orderResult, Map<Product, Integer> freeItems) {
         Promotion promotion = product.getActivePromotion();
-        if (promotion == null || product.getPromotionStock() > quantity) {
-            processFullPromotionOrder(product, quantity, orderResult, freeItems);
-        } else {
-            handlePartialPromotionOrder(product, quantity, orderResult, freeItems);
+
+        if (promotion == null || !promotion.isActive() || product.getPromotionStock() < quantity) {
+            handlePartialPromotionOrder(product,quantity,orderResult,freeItems);
+            return;
         }
+        processFullPromotionOrder(product, quantity, orderResult, freeItems);
     }
 
     private static void processFullPromotionOrder(Product product, int quantity, Map<Product, Integer> orderResult, Map<Product, Integer> freeItems) {
         Promotion promotion = product.getActivePromotion();
-        if (promotion != null) {
+
+        if (promotion != null && promotion.isActive()) {
             int sets = quantity / (promotion.getBuy() + promotion.getGet());
             int freeItemsCount = sets * promotion.getGet();
             addToFreeItems(freeItems, product, freeItemsCount);
@@ -63,14 +65,21 @@ public class OrderUtil {
                     freeItemsCount = sets * promotion.getGet();
                     addToFreeItems(freeItems, product, freeItemsCount);
                 }
+                reducePromotionStock(product, quantity);
+                addToPurchasedItems(orderResult, product, quantity);
             }
         }
-        reducePromotionStock(product, quantity);
-        addToPurchasedItems(orderResult, product, quantity);
     }
+
 
     private static void handlePartialPromotionOrder(Product product, int quantity, Map<Product, Integer> orderResult, Map<Product, Integer> freeItems) {
         Promotion promotion = product.getActivePromotion();
+
+        if (promotion == null || !promotion.isActive()) {
+            handleNonPromotionalPurchase(product, quantity, orderResult);
+            return;
+        }
+
         int promotionStock = product.getPromotionStock();
         int promotionSetSize = promotion.getBuy() + promotion.getGet();
 

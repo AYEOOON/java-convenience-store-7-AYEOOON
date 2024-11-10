@@ -1,6 +1,5 @@
 package store.service;
 
-import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,9 +18,8 @@ public class PromotionService {
     }
 
     public List<Promotion> getActivePromotions(List<Promotion> promotions) {
-        LocalDate today = LocalDate.now();
         return promotions.stream()
-                .filter(promotion -> promotion.isActive(today))
+                .filter(Promotion::isActive)
                 .collect(Collectors.toList());
     }
 }
