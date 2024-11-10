@@ -3,7 +3,7 @@ package store.global;
 import store.model.Order;
 import store.model.Product;
 import store.model.Promotion;
-import store.ui.InputView;
+import store.ui.InputHandler;
 
 import java.util.HashMap;
 import java.util.List;
@@ -52,22 +52,22 @@ public class OrderUtil {
         Promotion promotion = product.getActivePromotion();
 
         if (promotion != null && promotion.isActive()) {
+            int remainingForPromotion = promotion.getGet() - (quantity % promotion.getBuy());
+            if (quantity == promotion.getBuy()) {
+                boolean confirmAdditionalPurchase = InputHandler.getAdditionalPromotionConfirmation(product.getName(), remainingForPromotion);
+                if (confirmAdditionalPurchase) {
+                    quantity+=remainingForPromotion;
+                    addToPurchasedItems(orderResult,product,quantity);
+                    addToFreeItems(freeItems,product,remainingForPromotion);
+                    reducePromotionStock(product,remainingForPromotion);
+                    return;
+                }
+            }
             int sets = quantity / (promotion.getBuy() + promotion.getGet());
             int freeItemsCount = sets * promotion.getGet();
             addToFreeItems(freeItems, product, freeItemsCount);
-
-            int remainingForPromotion = promotion.getBuy() - (quantity % promotion.getBuy());
-            if (quantity == promotion.getBuy()) {
-                boolean confirmAdditionalPurchase = InputView.getAdditionalPromotionConfirmation(product.getName(), remainingForPromotion);
-                if (confirmAdditionalPurchase) {
-                    quantity += remainingForPromotion;
-                    sets = quantity / (promotion.getBuy() + promotion.getGet());
-                    freeItemsCount = sets * promotion.getGet();
-                    addToFreeItems(freeItems, product, freeItemsCount);
-                }
-                reducePromotionStock(product, quantity);
-                addToPurchasedItems(orderResult, product, quantity);
-            }
+            addToPurchasedItems(orderResult, product,quantity);
+            reducePromotionStock(product,quantity);
         }
     }
 
@@ -99,7 +99,7 @@ public class OrderUtil {
 
         if (remainingQuantity <= 0) return;
 
-        boolean confirmFullPrice = InputView.getNoPromotionConfirmation(product.getName(), remainingQuantity);
+        boolean confirmFullPrice = InputHandler.getNoPromotionConfirmation(product.getName(), remainingQuantity);
         if (!confirmFullPrice) return;
 
         int remainingPromotionStock = remainingQuantity % promotionSetSize;
@@ -138,10 +138,11 @@ public class OrderUtil {
     }
 
     private static String[] parseUserInput(String userInput) {
-        if (userInput.contains(" ")) {
+        if (userInput == null || userInput.isEmpty()) {
             throw new IllegalArgumentException(INVALID_INPUT_ERROR);
         }
-        return userInput.replaceAll("\\[|\\]", "").split(COMMA_SEPARATOR);
+        userInput = userInput.replaceAll("\\s", "").replaceAll("\\[|\\]", "");
+        return userInput.split(COMMA_SEPARATOR);
     }
 
     private static void checkStock(Product product, int quantity) {

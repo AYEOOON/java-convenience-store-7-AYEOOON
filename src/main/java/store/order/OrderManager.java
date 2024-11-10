@@ -5,10 +5,10 @@ import store.model.Order;
 import store.model.Product;
 import store.global.OrderUtil;
 import store.service.ProductService;
-import store.ui.InputView;
-import store.ui.OutputView;
+import store.ui.InputHandler;
+import store.ui.OutputHandler;
 
-public class OrderSystem {
+public class OrderManager{
     private static final ProductService productService = new ProductService();
 
     public void order() {
@@ -17,23 +17,23 @@ public class OrderSystem {
             Order order = getUserOrder(products);
             int eventDiscount = applyEventDiscount(order);
             int membershipDiscount = handleMembershipDiscount(order);
-            OutputView.displayReceipt(order, eventDiscount, membershipDiscount);
-            if(!InputView.getAdditionalPurchaseConfirmation()) break;
-            OutputView.welcomeMessage();
-            OutputView.displayProducts(products);
+            OutputHandler.displayReceipt(order, eventDiscount, membershipDiscount);
+            if(!InputHandler.getAdditionalPurchaseConfirmation()) break;
+            OutputHandler.welcomeMessage();
+            OutputHandler.displayProducts(products);
         }
     }
 
     private List<Product> displayProducts() {
-        OutputView.welcomeMessage();
+        OutputHandler.welcomeMessage();
         List<Product> products = productService.loadProducts("src/main/resources/products.md");
-        OutputView.displayProducts(products);
+        OutputHandler.displayProducts(products);
         return products;
     }
 
     private Order getUserOrder(List<Product> products) {
         try {
-            return OrderUtil.convertInputToOrder(InputView.getProductSelection(), products);
+            return OrderUtil.convertInputToOrder(InputHandler.getProductSelection(), products);
         } catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
             return getUserOrder(products);
@@ -47,7 +47,7 @@ public class OrderSystem {
     }
 
     private int handleMembershipDiscount(Order order) {
-        if (InputView.getMembershipDiscountConfirmation()) {
+        if (InputHandler.getMembershipDiscountConfirmation()) {
             order.applyMembershipDiscount();
             return order.getMembershipDiscount();
         }

@@ -1,10 +1,11 @@
 package store;
 
-import store.order.OrderSystem;
+
+import store.order.OrderManager;
 
 public class Application {
     public static void main(String[] args) {
-        OrderSystem orderSystem = new OrderSystem();
-        orderSystem.order();
+        OrderManager orderManager = new OrderManager();
+        orderManager.order();
     }
 }

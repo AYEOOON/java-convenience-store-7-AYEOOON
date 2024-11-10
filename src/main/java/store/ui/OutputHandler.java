@@ -7,7 +7,7 @@ import store.model.Order;
 import store.model.Product;
 import store.model.Promotion;
 
-public class OutputView {
+public class OutputHandler {
 
     private static final DecimalFormat formatter = new DecimalFormat("#,###");
 
@@ -16,7 +16,7 @@ public class OutputView {
     }
 
     public static void displayProducts(List<Product> products) {
-        products.forEach(OutputView::displayProductStock);
+        products.forEach(OutputHandler::displayProductStock);
     }
 
     private static void displayProductStock(Product product) {
