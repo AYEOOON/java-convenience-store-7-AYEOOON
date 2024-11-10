@@ -71,7 +71,6 @@ public class OrderUtil {
         }
     }
 
-
     private static void handlePartialPromotionOrder(Product product, int quantity, Map<Product, Integer> orderResult, Map<Product, Integer> freeItems) {
         Promotion promotion = product.getActivePromotion();
 
@@ -98,22 +97,25 @@ public class OrderUtil {
 
         int remainingQuantity = quantity - applicablePromotionQuantity;
 
-        if (remainingQuantity > 0) {
-            boolean confirmFullPrice = InputView.getNoPromotionConfirmation(product.getName(), remainingQuantity);
-            if (confirmFullPrice) {
-                reducePromotionStock(product, remainingQuantity%promotionSetSize);
-                addToPurchasedItems(orderResult,product,remainingQuantity%promotionSetSize);
-                remainingQuantity-=remainingQuantity%promotionSetSize;
-                handleNonPromotionalPurchase(product, remainingQuantity, orderResult);
-            }
+        if (remainingQuantity <= 0) return;
+
+        boolean confirmFullPrice = InputView.getNoPromotionConfirmation(product.getName(), remainingQuantity);
+        if (!confirmFullPrice) return;
+
+        int remainingPromotionStock = remainingQuantity % promotionSetSize;
+        if (remainingPromotionStock > 0) {
+            reducePromotionStock(product, remainingPromotionStock);
+            addToPurchasedItems(orderResult, product, remainingPromotionStock);
+            remainingQuantity -= remainingPromotionStock;
         }
+
+        handleNonPromotionalPurchase(product, remainingQuantity, orderResult);
     }
 
     private static void handleNonPromotionalPurchase(Product product, int remainingQuantity, Map<Product, Integer> orderResult) {
-        if (remainingQuantity > 0) {
-            reduceGeneralStock(product, remainingQuantity);
-            addToPurchasedItems(orderResult, product, remainingQuantity);
-        }
+        if (remainingQuantity <= 0) return;
+        reduceGeneralStock(product, remainingQuantity);
+        addToPurchasedItems(orderResult, product, remainingQuantity);
     }
 
 
