@@ -21,7 +21,6 @@ public class OrderUtil {
         Map<Product, Integer> orderResult = new HashMap<>();
         Map<Product, Integer> freeItems = new HashMap<>();
         String[] orders = parseUserInput(userInput);
-
         for (String order : orders) {
             processOrderItem(order, availableProducts, orderResult, freeItems);
         }
@@ -32,7 +31,6 @@ public class OrderUtil {
         String[] oneOrder = getOneOrder(order);
         String productName = oneOrder[0];
         int quantity = getQuantity(oneOrder[1]);
-
         Product product = findExistingProduct(productName, availableProducts);
         checkStock(product, quantity);
         handlePromotionOrder(product, quantity, orderResult, freeItems);
@@ -40,7 +38,6 @@ public class OrderUtil {
 
     private static void handlePromotionOrder(Product product, int quantity, Map<Product, Integer> orderResult, Map<Product, Integer> freeItems) {
         Promotion promotion = product.getActivePromotion();
-
         if (promotion == null || !promotion.isActive() || product.getPromotionStock() < quantity) {
             handlePartialPromotionOrder(product,quantity,orderResult,freeItems);
             return;
@@ -49,66 +46,118 @@ public class OrderUtil {
     }
 
     private static void processFullPromotionOrder(Product product, int quantity, Map<Product, Integer> orderResult, Map<Product, Integer> freeItems) {
-        Promotion promotion = product.getActivePromotion();
+        if (!isPromotionActive(product)) return;
+        if (handleAdditionalPurchase(product, quantity, orderResult, freeItems)) return;
+        processPromotionSets(product, quantity, orderResult, freeItems);
+    }
 
-        if (promotion != null && promotion.isActive()) {
-            int remainingForPromotion = promotion.getGet() - (quantity % promotion.getBuy());
-            if (quantity == promotion.getBuy()) {
-                boolean confirmAdditionalPurchase = InputHandler.getAdditionalPromotionConfirmation(product.getName(), remainingForPromotion);
-                if (confirmAdditionalPurchase) {
-                    quantity+=remainingForPromotion;
-                    addToPurchasedItems(orderResult,product,quantity);
-                    addToFreeItems(freeItems,product,remainingForPromotion);
-                    reducePromotionStock(product,remainingForPromotion);
-                    return;
-                }
-            }
-            int sets = quantity / (promotion.getBuy() + promotion.getGet());
-            int freeItemsCount = sets * promotion.getGet();
-            addToFreeItems(freeItems, product, freeItemsCount);
-            addToPurchasedItems(orderResult, product,quantity);
-            reducePromotionStock(product,quantity);
+    private static boolean isPromotionActive(Product product) {
+        Promotion promotion = product.getActivePromotion();
+        return (promotion != null && promotion.isActive());
+    }
+
+    private static boolean handleAdditionalPurchase(Product product, int quantity, Map<Product, Integer> orderResult, Map<Product, Integer> freeItems) {
+        if (!shouldAskForAdditionalPurchase(product, quantity)) return false;
+        int remainingForPromotion = calculateRemainingForPromotion(product, quantity);
+        boolean confirmAdditionalPurchase = askForAdditionalPurchase(product, remainingForPromotion);
+        if (confirmAdditionalPurchase) {
+            processAdditionalPurchase(product, quantity, remainingForPromotion, orderResult, freeItems);
+            return true;
         }
+        return false;
+    }
+
+    private static boolean shouldAskForAdditionalPurchase(Product product, int quantity) {
+        Promotion promotion = product.getActivePromotion();
+        return promotion != null && quantity == promotion.getBuy();
+    }
+
+    private static int calculateRemainingForPromotion(Product product, int quantity) {
+        Promotion promotion = product.getActivePromotion();
+        return promotion.getGet() - (quantity % promotion.getBuy());
+    }
+
+    private static boolean askForAdditionalPurchase(Product product, int remainingForPromotion) {
+        return InputHandler.getAdditionalPromotionConfirmation(product.getName(), remainingForPromotion);
+    }
+
+    private static void processAdditionalPurchase(Product product, int quantity, int remainingForPromotion, Map<Product, Integer> orderResult, Map<Product, Integer> freeItems) {
+        int totalQuantity = quantity + remainingForPromotion;
+        addToPurchasedItems(orderResult, product, totalQuantity);
+        addToFreeItems(freeItems, product, remainingForPromotion);
+        reducePromotionStock(product, totalQuantity);
+    }
+
+    private static void processPromotionSets(Product product, int quantity, Map<Product, Integer> orderResult, Map<Product, Integer> freeItems) {
+        Promotion promotion = product.getActivePromotion();
+        int sets = quantity / (promotion.getBuy() + promotion.getGet());
+        int freeItemsCount = sets * promotion.getGet();
+        if (quantity%(promotion.getBuy() + promotion.getGet())>0){
+            handlePartialPromotionOrder(product,quantity,orderResult,freeItems);
+            return;
+        }
+        addToFreeItems(freeItems, product, freeItemsCount);
+        addToPurchasedItems(orderResult, product, quantity);
+        reducePromotionStock(product, quantity);
     }
 
     private static void handlePartialPromotionOrder(Product product, int quantity, Map<Product, Integer> orderResult, Map<Product, Integer> freeItems) {
-        Promotion promotion = product.getActivePromotion();
-
-        if (promotion == null || !promotion.isActive()) {
+        if (isNonPromotional(product)) {
             handleNonPromotionalPurchase(product, quantity, orderResult);
             return;
         }
+        int applicablePromotionQuantity = processPromotionStock(product, quantity, orderResult);
+        handleFreeItems(product, applicablePromotionQuantity, freeItems);
+        int remainingQuantity = quantity - applicablePromotionQuantity;
+        if (remainingQuantity > 0) handleRemainingQuantity(product, remainingQuantity, orderResult);
+    }
 
+    private static boolean isNonPromotional(Product product) {
+        Promotion promotion = product.getActivePromotion();
+        return (promotion == null || !promotion.isActive());
+    }
+
+    private static int processPromotionStock(Product product, int quantity, Map<Product, Integer> orderResult) {
+        int applicablePromotionQuantity = calculateMaxPromotionQuantity(product, quantity);
+        if (applicablePromotionQuantity > 0) {
+            applyPromotionStock(product, applicablePromotionQuantity, orderResult);
+        }
+        return applicablePromotionQuantity;
+    }
+
+    private static int calculateMaxPromotionQuantity(Product product, int quantity) {
+        Promotion promotion = product.getActivePromotion();
         int promotionStock = product.getPromotionStock();
         int promotionSetSize = promotion.getBuy() + promotion.getGet();
 
         int maxFullPromotionSets = promotionStock / promotionSetSize;
         int maxPromotionQuantity = maxFullPromotionSets * promotionSetSize;
-        int applicablePromotionQuantity = Math.min(quantity, maxPromotionQuantity);
+        return Math.min(quantity, maxPromotionQuantity);
+    }
 
-        if (applicablePromotionQuantity > 0) {
-            reducePromotionStock(product, applicablePromotionQuantity);
-            addToPurchasedItems(orderResult, product, applicablePromotionQuantity);
+    private static void applyPromotionStock(Product product, int applicablePromotionQuantity, Map<Product, Integer> orderResult) {
+        reducePromotionStock(product, applicablePromotionQuantity);
+        addToPurchasedItems(orderResult, product, applicablePromotionQuantity);
+    }
 
-            int completePromotionSets = applicablePromotionQuantity / promotionSetSize;
-            int freeItemsCount = completePromotionSets * promotion.getGet();
-            addToFreeItems(freeItems, product, freeItemsCount);
-        }
+    private static void handleFreeItems(Product product, int applicablePromotionQuantity, Map<Product, Integer> freeItems) {
+        Promotion promotion = product.getActivePromotion();
+        int promotionSetSize = promotion.getBuy() + promotion.getGet();
+        int completePromotionSets = applicablePromotionQuantity / promotionSetSize;
+        int freeItemsCount = completePromotionSets * promotion.getGet();
+        addToFreeItems(freeItems, product, freeItemsCount);
+    }
 
-        int remainingQuantity = quantity - applicablePromotionQuantity;
-
-        if (remainingQuantity <= 0) return;
-
+    private static void handleRemainingQuantity(Product product, int remainingQuantity, Map<Product, Integer> orderResult) {
         boolean confirmFullPrice = InputHandler.getNoPromotionConfirmation(product.getName(), remainingQuantity);
         if (!confirmFullPrice) return;
 
-        int remainingPromotionStock = remainingQuantity % promotionSetSize;
+        int remainingPromotionStock = remainingQuantity % (product.getActivePromotion().getBuy() + product.getActivePromotion().getGet());
         if (remainingPromotionStock > 0) {
             reducePromotionStock(product, remainingPromotionStock);
             addToPurchasedItems(orderResult, product, remainingPromotionStock);
             remainingQuantity -= remainingPromotionStock;
         }
-
         handleNonPromotionalPurchase(product, remainingQuantity, orderResult);
     }
 
@@ -117,7 +166,6 @@ public class OrderUtil {
         reduceGeneralStock(product, remainingQuantity);
         addToPurchasedItems(orderResult, product, remainingQuantity);
     }
-
 
     private static void reducePromotionStock(Product product, int quantity) {
         product.reduceStock(quantity, true);
