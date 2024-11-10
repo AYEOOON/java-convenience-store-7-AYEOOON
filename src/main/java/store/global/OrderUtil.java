@@ -8,15 +8,9 @@ import store.ui.InputHandler;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import store.util.MessageEnum;
 
 public class OrderUtil {
-    private static final String COMMA_SEPARATOR = ",";
-    private static final String HYPHEN = "-";
-    private static final String INVALID_ORDER_FORMAT_ERROR = "[ERROR] 올바르지 않은 형식으로 입력했습니다. 다시 입력해 주세요.";
-    private static final String PRODUCT_NAME_ERROR = "[ERROR] 존재하지 않는 상품입니다. 다시 입력해 주세요.";
-    private static final String INVALID_INPUT_ERROR = "[ERROR] 잘못된 입력입니다. 다시 입력해 주세요.";
-    private static final String OUT_OF_STOCK_ERROR = "[ERROR] 재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요.";
-
     public static Order convertInputToOrder(String userInput, List<Product> availableProducts) {
         Map<Product, Integer> orderResult = new HashMap<>();
         Map<Product, Integer> freeItems = new HashMap<>();
@@ -187,22 +181,22 @@ public class OrderUtil {
 
     private static String[] parseUserInput(String userInput) {
         if (userInput == null || userInput.isEmpty()) {
-            throw new IllegalArgumentException(INVALID_INPUT_ERROR);
+            throw new IllegalArgumentException(MessageEnum.INVALID_INPUT_ERROR.getMessage());
         }
         userInput = userInput.replaceAll("\\s", "").replaceAll("\\[|\\]", "");
-        return userInput.split(COMMA_SEPARATOR);
+        return userInput.split(MessageEnum.COMMA_SEPARATOR.getMessage());
     }
 
     private static void checkStock(Product product, int quantity) {
         if ((product.getGeneralStock() + product.getPromotionStock()) < quantity) {
-            throw new IllegalArgumentException(OUT_OF_STOCK_ERROR);
+            throw new IllegalArgumentException(MessageEnum.OUT_OF_STOCK_ERROR.getMessage());
         }
     }
 
     private static String[] getOneOrder(String order) {
-        String[] oneOrder = order.split(HYPHEN);
+        String[] oneOrder = order.split(MessageEnum.HYPHEN.getMessage());
         if (oneOrder.length != 2) {
-            throw new IllegalArgumentException(INVALID_ORDER_FORMAT_ERROR);
+            throw new IllegalArgumentException(MessageEnum.INVALID_ORDER_FORMAT_ERROR.getMessage());
         }
         return oneOrder;
     }
@@ -211,7 +205,7 @@ public class OrderUtil {
         try {
             return Integer.parseInt(quantityStr);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException(INVALID_INPUT_ERROR);
+            throw new IllegalArgumentException(MessageEnum.INVALID_INPUT_ERROR.getMessage());
         }
     }
 
@@ -219,6 +213,6 @@ public class OrderUtil {
         return availableProducts.stream()
                 .filter(product -> product.getName().equalsIgnoreCase(productName))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException(PRODUCT_NAME_ERROR));
+                .orElseThrow(() -> new IllegalArgumentException(MessageEnum.PRODUCT_NAME_ERROR.getMessage()));
     }
 }

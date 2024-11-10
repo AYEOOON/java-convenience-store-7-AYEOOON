@@ -84,4 +84,8 @@ public class Order {
     public int getTotalAmount() {
         return totalAmount;
     }
+
+    public int getTotalQuantity() {
+        return orderItems.values().stream().mapToInt(Integer::intValue).sum();
+    }
 }

@@ -6,13 +6,15 @@ import java.util.Map;
 import store.model.Order;
 import store.model.Product;
 import store.model.Promotion;
+import store.util.MessageEnum;
+import store.util.ReceiptEnum;
 
 public class OutputHandler {
 
     private static final DecimalFormat formatter = new DecimalFormat("#,###");
 
     public static void welcomeMessage() {
-        System.out.println("안녕하세요. W편의점입니다.\n현재 보유하고 있는 상품입니다.\n");
+        System.out.println(MessageEnum.WELCOME_MESSAGE.getMessage());
     }
 
     public static void displayProducts(List<Product> products) {
@@ -71,8 +73,8 @@ public class OutputHandler {
     }
 
     private static void printHeader() {
-        System.out.println("==============W 편의점================");
-        System.out.println("상품명\t\t수량\t금액");
+        System.out.println(ReceiptEnum.HEADER.getMessage());
+        System.out.println(ReceiptEnum.ITEM_HEADER.getMessage());
     }
 
     private static void printOrderItems(Order order) {
@@ -83,7 +85,7 @@ public class OutputHandler {
     }
 
     private static void printFreeItems(Order order) {
-        System.out.println("=============증\t정===============");
+        System.out.println(ReceiptEnum.FREE_ITEM_HEADER.getMessage());
         Map<Product, Integer> freeItems = order.getFreeItems();
         freeItems.forEach((product, quantity) -> {
             if (quantity > 0) {
@@ -93,11 +95,12 @@ public class OutputHandler {
     }
 
     private static void printTotalSummary(Order order, int eventDiscount, int membershipDiscount) {
-        System.out.println("====================================");
-        System.out.printf("총구매액\t\t\t%,d원\n", order.getOriginalTotalAmount());
-        System.out.printf("행사할인\t\t\t-%,d원\n", eventDiscount);
-        System.out.printf("멤버십할인\t\t\t-%,d원\n", membershipDiscount);
-        int finalAmount = order.getTotalAmount();
-        System.out.printf("내실돈\t\t\t%,d원\n", finalAmount);
+        System.out.println(ReceiptEnum.TOTAL_SUMMARY.getMessage());
+        int totalQuantity = order.getTotalQuantity();
+        System.out.printf(ReceiptEnum.TOTAL_AMOUNT.format(totalQuantity, order.getOriginalTotalAmount()));
+        System.out.printf(ReceiptEnum.EVENT_DISCOUNT.format(eventDiscount));
+        System.out.printf(ReceiptEnum.MEMBERSHIP_DISCOUNT.format(membershipDiscount));
+        System.out.printf(ReceiptEnum.FINAL_AMOUNT.format(order.getTotalAmount()));
     }
+
 }
