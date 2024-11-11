@@ -32,12 +32,17 @@ public class OrderUtil {
 
     private static void handlePromotionOrder(Product product, int quantity, Map<Product, Integer> orderResult, Map<Product, Integer> freeItems) {
         Promotion promotion = product.getActivePromotion();
-        if (promotion == null || !promotion.isActive() || product.getPromotionStock() < quantity) {
-            handlePartialPromotionOrder(product,quantity,orderResult,freeItems);
+        if (promotion == null || !promotion.isActive()) {
+            handleNonPromotionalPurchase(product, quantity, orderResult);
+            return;
+        }
+        if (product.getPromotionStock() < quantity) {
+            handlePartialPromotionOrder(product, quantity, orderResult, freeItems);
             return;
         }
         processFullPromotionOrder(product, quantity, orderResult, freeItems);
     }
+
 
     private static void processFullPromotionOrder(Product product, int quantity, Map<Product, Integer> orderResult, Map<Product, Integer> freeItems) {
         if (!isPromotionActive(product)) return;
@@ -86,7 +91,7 @@ public class OrderUtil {
         Promotion promotion = product.getActivePromotion();
         int sets = quantity / (promotion.getBuy() + promotion.getGet());
         int freeItemsCount = sets * promotion.getGet();
-        if (quantity%(promotion.getBuy() + promotion.getGet())>0){
+        if (product.getPromotionStock() <= (promotion.getGet()+promotion.getBuy())){
             handlePartialPromotionOrder(product,quantity,orderResult,freeItems);
             return;
         }
@@ -145,8 +150,7 @@ public class OrderUtil {
     private static void handleRemainingQuantity(Product product, int remainingQuantity, Map<Product, Integer> orderResult) {
         boolean confirmFullPrice = InputHandler.getNoPromotionConfirmation(product.getName(), remainingQuantity);
         if (!confirmFullPrice) return;
-
-        int remainingPromotionStock = remainingQuantity % (product.getActivePromotion().getBuy() + product.getActivePromotion().getGet());
+        int remainingPromotionStock = product.getPromotionStock() % (product.getActivePromotion().getBuy() + product.getActivePromotion().getGet());
         if (remainingPromotionStock > 0) {
             reducePromotionStock(product, remainingPromotionStock);
             addToPurchasedItems(orderResult, product, remainingPromotionStock);
