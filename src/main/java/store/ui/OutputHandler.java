@@ -22,30 +22,32 @@ public class OutputHandler {
     }
 
     private static void displayProductStock(Product product) {
-        if (product.getPromotionStock() == 0 && product.getGeneralStock() == 0) {
-            printOutOfStock(product);
-        } else {
-            displayPromotionStock(product);
-            displayGeneralStock(product);
-        }
+        displayPromotionStock(product);
+        displayGeneralStock(product);
     }
 
     private static void displayGeneralStock(Product product) {
         if (product.getGeneralStock() > 0) {
             printProductWithStock(product, product.getGeneralStock(), "");
-        } else {
-            printOutOfStock(product);
+        }
+        if (product.getGeneralStock() <= 0){
+            printProductOutOfStock(product);
         }
     }
 
     private static void displayPromotionStock(Product product) {
+        Promotion promotion = product.getActivePromotion();
         if (product.getPromotionStock() > 0) {
             printProductWithStock(product, product.getPromotionStock(), getPromotionName(product));
-        } else if (product.getActivePromotion() != null) {
-            String promotionInfo = getPromotionName(product);
-            String formattedPrice = formatter.format(product.getPrice()) + "원";
-            System.out.println("- " + product.getName() + " " + formattedPrice + " 재고 없음" + promotionInfo);
         }
+        if (promotion != null && product.getPromotionStock() <= 0) {
+            printPromotionOutOfStock(product);
+        }
+    }
+    private static void printPromotionOutOfStock(Product product) {
+        String promotionInfo = getPromotionName(product);
+        String formattedPrice = formatter.format(product.getPrice()) + "원";
+        System.out.println("- " + product.getName() + " " + formattedPrice + " 재고 없음" + promotionInfo);
     }
 
     private static void printProductWithStock(Product product, int stock, String promotionInfo) {
@@ -53,7 +55,7 @@ public class OutputHandler {
         System.out.println("- " + product.getName() + " " + formattedPrice + " " + stock + "개" + promotionInfo);
     }
 
-    private static void printOutOfStock(Product product) {
+    private static void printProductOutOfStock(Product product) {
         String formattedPrice = formatter.format(product.getPrice()) + "원";
         System.out.println("- " + product.getName() + " " + formattedPrice + " 재고 없음");
     }

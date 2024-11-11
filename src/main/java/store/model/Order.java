@@ -46,11 +46,13 @@ public class Order {
                 .mapToInt(entry -> {
                     Product product = entry.getKey();
                     int quantity = entry.getValue();
-
-                    if (product.getActivePromotion() == null) {
+                    if (product.getActivePromotion() == null || !product.getActivePromotion().isActive()) {
                         return product.getPrice() * quantity;
                     }
-                    return 0;
+                    Promotion promotion = product.getActivePromotion();
+                    int freeQuantity = freeItems.getOrDefault(product, 0);
+                    int nonPromotionQuantity = quantity - (freeQuantity*(promotion.getBuy()+promotion.getGet()));
+                    return nonPromotionQuantity * product.getPrice();
                 })
                 .sum();
     }

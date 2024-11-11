@@ -2,7 +2,7 @@ package store.util;
 
 public enum MessageEnum {
     WELCOME_MESSAGE("안녕하세요. W편의점입니다.\n"
-            + "현재 보유하고 있는 상품입니다."),
+            + "현재 보유하고 있는 상품입니다.\n"),
     INPUT_PROMPT("\n구매하실 상품명과 수량을 입력해 주세요. (예: [사이다-2],[감자칩-1])"),
     MEMBERSHIP_PROMPT("\n멤버십 할인을 받으시겠습니까? (Y/N)"),
     ADDITIONAL_PURCHASE_CONFIRMATION("\n감사합니다. 구매하고 싶은 다른 상품이 있나요? (Y/N)"),
