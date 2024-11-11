@@ -1,4 +1,4 @@
-package store.global;
+package store.util;
 
 import store.model.Order;
 import store.model.Product;
@@ -8,7 +8,7 @@ import store.ui.InputHandler;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import store.util.MessageEnum;
+import store.global.MessageEnum;
 
 public class OrderUtil {
     public static Order convertInputToOrder(String userInput, List<Product> availableProducts) {

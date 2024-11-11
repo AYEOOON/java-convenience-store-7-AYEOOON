@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.util.List;
 import store.model.Product;
 import store.model.Promotion;
-import store.global.ProductUtil;
-import store.global.PromotionUtil;
+import store.util.ProductUtil;
+import store.util.PromotionUtil;
 
 public class ProductService {
     private final ProductUtil productLoader;

@@ -1,4 +1,4 @@
-package store.util;
+package store.global;
 
 import camp.nextstep.edu.missionutils.Console;
 

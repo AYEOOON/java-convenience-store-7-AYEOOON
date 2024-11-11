@@ -1,4 +1,4 @@
-package store.global;
+package store.util;
 
 import java.io.IOException;
 import java.nio.file.Files;

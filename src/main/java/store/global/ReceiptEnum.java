@@ -1,4 +1,4 @@
-package store.util;
+package store.global;
 
 public enum ReceiptEnum {
     HEADER("==============W 편의점================"),

@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import store.model.Promotion;
-import store.global.PromotionUtil;
+import store.util.PromotionUtil;
 
 public class PromotionService {
     private final PromotionUtil promotionLoader = new PromotionUtil();

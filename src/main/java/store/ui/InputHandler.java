@@ -1,8 +1,8 @@
 package store.ui;
 
 import camp.nextstep.edu.missionutils.Console;
-import store.util.InputValidator;
-import store.util.MessageEnum;
+import store.global.InputValidator;
+import store.global.MessageEnum;
 
 public class InputHandler {
 

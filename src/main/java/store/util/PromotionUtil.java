@@ -1,4 +1,4 @@
-package store.global;
+package store.util;
 
 import store.model.Promotion;
 

@@ -1,4 +1,4 @@
-package store.util;
+package store.global;
 
 public enum MessageEnum {
     WELCOME_MESSAGE("안녕하세요. W편의점입니다.\n"

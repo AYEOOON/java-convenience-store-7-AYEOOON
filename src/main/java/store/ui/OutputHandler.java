@@ -6,8 +6,8 @@ import java.util.Map;
 import store.model.Order;
 import store.model.Product;
 import store.model.Promotion;
-import store.util.MessageEnum;
-import store.util.ReceiptEnum;
+import store.global.MessageEnum;
+import store.global.ReceiptEnum;
 
 public class OutputHandler {
 
